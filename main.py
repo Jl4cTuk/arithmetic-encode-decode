@@ -5,24 +5,48 @@ def compress(file):
 
 	filein = open(file, 'r')
 	s = filein.read()
-
+	
 	dict = {}
+	p = []
+	list = ""
 	for ch, freq in Counter(s).items():
 		dict[ch] = freq
+		p.append(dict[ch]/len(s))
+		list+=ch
 
-	print(dict)
+	top = 1
+	bottom = 0
+	for ch in s:
+		a = top - bottom
+		new_top = list.find(ch)
+		for i in range(new_top): 
+			bottom = bottom + a*p[i]
+		top = bottom + a*p[new_top]
+
 	
-	f = open("enc", 'w')
-	f.write(s)
+	#запись
+	f = open("enc", 'wb')
+	f.write(len(dict).to_bytes(2,'big'))
+	for ch in dict:
+		f.write(ch.encode())
+		f.write(dict[ch].to_bytes(2, 'big'))
+	print(len(dict), dict)
 	f.close()
 
 def decompress(file):
 
-	filein = open(file, 'r')
-	s = filein.read()
+	filein = open(file, 'rb')
+
+	dictlen = int.from_bytes(filein.read(2), 'big')
+	dict = {}
+	for i in range(dictlen):
+		a = str(filein.read(1).decode())
+		b = int.from_bytes(filein.read(2), 'big')
+		dict[a] = b
+	print(dictlen, dict)
 	
-	f = open("dec", 'w')
-	f.write(s)
+	#запись
+	f = open("dec", 'wb')
 	f.close()
 
 def take_file():
@@ -46,6 +70,7 @@ def main_menu():
 def main():
 	#main_menu()
 	compress("txt")
+	decompress("enc")
 
 if __name__ == "__main__":
 	main()
